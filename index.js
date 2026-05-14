@@ -11,7 +11,7 @@ const announcementsRoutes = require("./routes/announcementsRoutes");
 const sanitizeHtml = require("sanitize-html");
 
 const app = express();
-const SECRET_KEY = "your_secret_key_here";
+const SECRET_KEY = process.env.SECRET_KEY || "your_secret_key_here";
 
 app.use(cors()); // for cross-origin requests
 app.use(express.json()); // for parsing application/json
@@ -56,9 +56,9 @@ app.get("/", (req, res) => {
 });
 
 // start the server
-app.listen(5000, () => {
-  console.log("Server started on port 5000");
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(5000, () => console.log("Server started on port 5000"));
+}
 
 // the login route
 app.post("/login", (req, res) => {
@@ -112,13 +112,5 @@ app.post("/login", (req, res) => {
 app.get("/dashboard", verifyToken, (req, res) => {
   res.json({ message: "Welcome to dashboard", user: req.user });
 });
-
-// Serve static files from uploads directory
-app.use("/uploads", express.static("uploads"));
-app.use("/uploads/techs_logos", express.static("uploads/techs_logos"));
-app.use("/uploads/icontact_logos", express.static("uploads/icontact_logos"));
-app.use("/uploads/messages_images", express.static("uploads/messages_images"));
-app.use("/uploads/projects", express.static("uploads/projects"));
-
 
 module.exports = app;
