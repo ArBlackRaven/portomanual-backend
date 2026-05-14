@@ -119,3 +119,6 @@ app.use("/uploads/techs_logos", express.static("uploads/techs_logos"));
 app.use("/uploads/icontact_logos", express.static("uploads/icontact_logos"));
 app.use("/uploads/messages_images", express.static("uploads/messages_images"));
 app.use("/uploads/projects", express.static("uploads/projects"));
+
+
+module.exports = app;
