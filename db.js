@@ -12,16 +12,9 @@ const db = mysql.createPool({
   },
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
-});
-
-db.getConnection((err, conn) => {
-  if (err) {
-    console.log("Connection failed:", err);
-  } else {
-    console.log("Connected to database!");
-    conn.release();
-  }
+  queueLimit: 0,
+  enableKeepAlive: true,        // بيمنع الاتصال إنه ينام
+  keepAliveInitialDelay: 10000  // بيعمل ريفريش للاتصال
 });
 
 module.exports = db;
