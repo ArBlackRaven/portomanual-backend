@@ -79,23 +79,57 @@ router.put("/order", verifyToken, (req, res) => {
 });
 
 // PUT - Update tech
-router.put("/:id", verifyToken, upload.single("logo"), (req, res) => {
-  const { title, type, color, tech_url } = req.body;
-  const image_url = req.file ? req.file.path : null;
-  const now = new Date();
+router.put("/:id", verifyToken, (req, res) => {
+  // 1. Catch Cloudinary/Multer errors here
+  upload.single("logo")(req, res, (uploadErr) => {
+    if (uploadErr) {
+      console.error("🚨 [DEBUG] Cloudinary Upload Error:", uploadErr);
+      return res.status(500).json({ 
+        message: "Failed to upload image to Cloudinary", 
+        error: uploadErr.message || uploadErr 
+      });
+    }
 
-  let query, params;
-  if (image_url) {
-    query = "UPDATE techs SET title = ?, type = ?, color = ?, tech_url = ?, image_url = ?, modified = ? WHERE id = ?";
-    params = [title, type, color, tech_url, image_url, now, req.params.id];
-  } else {
-    query = "UPDATE techs SET title = ?, type = ?, color = ?, tech_url = ?, modified = ? WHERE id = ?";
-    params = [title, type, color, tech_url, now, req.params.id];
-  }
+    try {
+      // 2. Validate request body
+      const { title, type, color, tech_url } = req.body;
+      if (!title || !type) {
+        console.warn("🚨 [DEBUG] Missing required fields:", req.body);
+        return res.status(400).json({ message: "Title and Type are required" });
+      }
 
-  db.query(query, params, (err) => {
-    if (err) return res.status(500).json({ message: "Server error", error: err.message });
-    res.json({ message: "Tech updated successfully" });
+      const image_url = req.file ? req.file.path : null;
+      const now = new Date();
+
+      let query, params;
+      if (image_url) {
+        query = "UPDATE techs SET title = ?, type = ?, color = ?, tech_url = ?, image_url = ?, modified = ? WHERE id = ?";
+        params = [title, type, color, tech_url, image_url, now, req.params.id];
+      } else {
+        query = "UPDATE techs SET title = ?, type = ?, color = ?, tech_url = ?, modified = ? WHERE id = ?";
+        params = [title, type, color, tech_url, now, req.params.id];
+      }
+
+      // 3. Catch Database errors here
+      db.query(query, params, (dbErr) => {
+        if (dbErr) {
+          console.error("🚨 [DEBUG] Database Update Error:", dbErr);
+          return res.status(500).json({ 
+            message: "Failed to update Database", 
+            error: dbErr.message 
+          });
+        }
+        res.json({ message: "Tech updated successfully" });
+      });
+
+    } catch (codeErr) {
+      // 4. Catch any unexpected code errors
+      console.error("🚨 [DEBUG] Unexpected Code Error:", codeErr);
+      return res.status(500).json({ 
+        message: "An unexpected code error occurred", 
+        error: codeErr.message 
+      });
+    }
   });
 });
 
