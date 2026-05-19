@@ -59,6 +59,22 @@ router.get("/", (req, res) => {
   );
 });
 
+// GET - Get all jlog entries for home page (2026 only, last 6 entries)
+router.get("/home", (req, res) => {
+  db.query(
+    "SELECT * FROM jlog WHERE YEAR(STR_TO_DATE(date, '%Y-%m-%d')) = 2026 ORDER BY STR_TO_DATE(date, '%Y-%m-%d') DESC LIMIT 6",
+    (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res
+          .status(500)
+          .json({ message: "Server error", error: err.message });
+      }
+      res.json(results);
+    },
+  );
+});
+
 // PUT - Update jlog entry
 router.put("/:id", verifyToken, (req, res) => {
   const { date, title, description } = req.body;
